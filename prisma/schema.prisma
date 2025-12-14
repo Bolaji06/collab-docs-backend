@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  username         String    @unique
+  password         String?
+  avatar           String?
+  googleId         String?   @unique @map("google_id")
+  isVerified       Boolean   @default(false) @map("is_verified")
+  otp              String?
+  otpExpiresAt     DateTime? @map("otp_expires_at")
+  resetToken       String?   @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  ownedDocuments      Document[]           @relation("DocumentOwner")
+  documentPermissions DocumentPermission[]
+  documentVersions    DocumentVersion[]
+  comments            Comment[]
+  commentReplies      CommentReply[]
+
+  @@map("users")
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  title     String
+  content   Json?
+  ownerId   String   @map("owner_id")
+  isPublic  Boolean  @default(false) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner       User                 @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  permissions DocumentPermission[]
+  versions    DocumentVersion[]
+  deltas      DocumentDelta[]
+  comments    Comment[]
+
+  @@index([ownerId])
+  @@index([createdAt])
+  @@map("documents")
+}
+
+model DocumentPermission {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  userId     String   @map("user_id")
+  role       Role     @default(VIEWER)
+  grantedAt  DateTime @default(now()) @map("granted_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@index([documentId])
+  @@index([userId])
+  @@map("document_permissions")
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model DocumentVersion {
+  id            String   @id @default(uuid())
+  documentId    String   @map("document_id")
+  content       Json
+  versionNumber Int      @map("version_number")
+  createdBy     String   @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([createdAt])
+  @@map("document_versions")
+}
+
+model DocumentDelta {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  userId     String   @map("user_id")
+  operations Json
+  version    Int
+  timestamp  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([timestamp])
+  @@map("document_deltas")
+}
+
+model Comment {
+  id            String   @id @default(uuid())
+  documentId    String   @map("document_id")
+  userId        String   @map("user_id")
+  content       String
+  positionStart Int      @map("position_start")
+  positionEnd   Int      @map("position_end")
+  resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  document Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies  CommentReply[]
+
+  @@index([documentId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model CommentReply {
+  id        String   @id @default(uuid())
+  commentId String   @map("comment_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@map("comment_replies")
+}

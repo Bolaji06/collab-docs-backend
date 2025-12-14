@@ -1,0 +1,44 @@
+
+### Register
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "username": "johndoe",
+  "password": "Password123"
+}
+
+### Login
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "Password123"
+}
+
+### Get Current User
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Refresh Token
+POST http://localhost:5000/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE"
+}
+
+### Update Profile
+PUT http://localhost:5000/api/auth/profile
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "username": "johnupdated"
+}
+
+### Logout
+POST http://localhost:5000/api/auth/logout
+Authorization: Bearer YOUR_TOKEN_HERE
