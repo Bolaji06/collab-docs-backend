@@ -147,8 +147,8 @@ class AuthController {
 
     // Google Login
     googleLogin = asyncHandler(async (req: Request, res: Response) => {
-        const { idToken } = req.body;
-        const result = await authService.loginWithGoogle(idToken);
+        const { accessToken } = req.body;
+        const result = await authService.loginWithGoogle(accessToken);
         res.status(200).json({
             success: true,
             message: 'Login successful',

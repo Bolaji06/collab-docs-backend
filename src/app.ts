@@ -41,9 +41,14 @@ app.get('/health', (req, res) => {
     });
 });
 
+import commentRoutes from './routes/comments.route';
+import notificationRoutes from './routes/notification.route';
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use(notFound);

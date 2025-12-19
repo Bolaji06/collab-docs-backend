@@ -16,6 +16,10 @@ export const authenticate = asyncHandler(
 
     const token = authHeader.split(' ')[1];
 
+    if(!token) {
+      throw new UnauthorizedError('No token provided');
+    }
+
     try {
       // Verify token
       const decoded = jwt.verify(
@@ -61,6 +65,10 @@ export const optionalAuthenticate = asyncHandler(
     }
 
     const token = authHeader.split(' ')[1];
+
+    if(!token) {
+      return next();
+    }
 
     try {
       const decoded = jwt.verify(

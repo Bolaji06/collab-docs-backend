@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -33,18 +33,22 @@ model User {
   documentVersions    DocumentVersion[]
   comments            Comment[]
   commentReplies      CommentReply[]
+  notifications       Notification[]
 
   @@map("users")
 }
 
 model Document {
-  id        String   @id @default(uuid())
-  title     String
-  content   Json?
-  ownerId   String   @map("owner_id")
-  isPublic  Boolean  @default(false) @map("is_public")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  title      String
+  content    Json?
+  ownerId    String   @map("owner_id")
+  isPublic   Boolean  @default(false) @map("is_public")
+  publicRole Role?    @map("public_role") // null = restricted, or use isPublic to toggle
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   owner       User                 @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   permissions DocumentPermission[]
@@ -143,4 +147,27 @@ model CommentReply {
 
   @@index([commentId])
   @@map("comment_replies")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String           @map("user_id")
+  type       NotificationType
+  title      String
+  message    String
+  documentId String?          @map("document_id")
+  isRead     Boolean          @default(false) @map("is_read")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  COMMENT
+  SHARE
+  SYSTEM
+  MENTION
 }
