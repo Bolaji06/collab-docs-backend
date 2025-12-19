@@ -10,9 +10,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -31,9 +31,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     })[]>;
@@ -51,9 +51,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     })[]>;
@@ -71,9 +71,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     })[]>;
@@ -97,7 +97,7 @@ export declare class DocumentService {
             id: string;
             documentId: string;
             userId: string;
-            role: import("../../generated/prisma").$Enums.Role;
+            role: import(".prisma/client").$Enums.Role;
             grantedAt: Date;
         })[];
     } & {
@@ -105,9 +105,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -122,9 +122,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -136,9 +136,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -150,9 +150,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -164,9 +164,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;
@@ -184,7 +184,7 @@ export declare class DocumentService {
         id: string;
         documentId: string;
         userId: string;
-        role: import("../../generated/prisma").$Enums.Role;
+        role: import(".prisma/client").$Enums.Role;
         grantedAt: Date;
     }>;
     /**
@@ -199,9 +199,9 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        content: import("../../generated/prisma/runtime/client").JsonValue | null;
+        content: import("@prisma/client/runtime/client").JsonValue | null;
         isPublic: boolean;
-        publicRole: import("../../generated/prisma").$Enums.Role | null;
+        publicRole: import(".prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
         ownerId: string;
     }>;

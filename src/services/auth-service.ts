@@ -131,7 +131,7 @@ class AuthService {
         const newAccessToken = this.generateAccessToken(user.id, user.email);
         const refreshToken = this.generateRefreshToken(user.id, user.email);
 
-        const userWithoutPassword = exclude(user, ['password', 'otp', 'otpExpiresAt', 'resetToken', 'resetTokenExpiry']);
+        const userWithoutPassword = exclude(user, ['password', 'otp', 'otpExpiresAt', 'resetToken', 'resetTokenExpiry']) as AuthResponse['user'];
 
         return {
             user: userWithoutPassword,
@@ -168,7 +168,7 @@ class AuthService {
         const accessToken = this.generateAccessToken(updatedUser.id, updatedUser.email);
         const refreshToken = this.generateRefreshToken(updatedUser.id, updatedUser.email);
 
-        const userWithoutPassword = exclude(updatedUser, ['password', 'otp', 'otpExpiresAt', 'resetToken', 'resetTokenExpiry']);
+        const userWithoutPassword = exclude(updatedUser, ['password', 'otp', 'otpExpiresAt', 'resetToken', 'resetTokenExpiry']) as AuthResponse['user'];
 
         return {
             user: userWithoutPassword,
@@ -219,7 +219,7 @@ class AuthService {
         const accessToken = this.generateAccessToken(user.id, user.email);
         const refreshToken = this.generateRefreshToken(user.id, user.email);
 
-        const userWithoutPassword = exclude(user, ['password']);
+        const userWithoutPassword = exclude(user, ['password']) as AuthResponse['user'];
 
         return {
             user: userWithoutPassword,

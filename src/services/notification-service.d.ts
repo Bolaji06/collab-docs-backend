@@ -9,7 +9,7 @@ export declare class NotificationService {
         id: string;
         createdAt: Date;
         message: string;
-        type: import("../../generated/prisma").$Enums.NotificationType;
+        type: import(".prisma/client").$Enums.NotificationType;
         title: string;
         documentId: string | null;
         userId: string;

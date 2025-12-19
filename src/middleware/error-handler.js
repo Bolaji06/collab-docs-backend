@@ -1,19 +1,20 @@
 import { AppError } from '../utils/errors';
-import { Prisma } from '../../generated/prisma';
+import { Prisma } from '@prisma/client';
 export const errorHandler = (err, req, res, next) => {
     console.error('Error:', err);
     // Handle Prisma errors
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        const prismaError = err;
         // Unique constraint violation
-        if (err.code === 'P2002') {
+        if (prismaError.code === 'P2002') {
             return res.status(409).json({
                 success: false,
                 message: 'A record with this value already exists',
-                error: err.meta?.target,
+                error: prismaError.meta?.target,
             });
         }
         // Record not found
-        if (err.code === 'P2025') {
+        if (prismaError.code === 'P2025') {
             return res.status(404).json({
                 success: false,
                 message: 'Record not found',
