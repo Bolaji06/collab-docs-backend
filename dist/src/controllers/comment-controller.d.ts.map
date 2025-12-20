@@ -1,0 +1,1 @@
+{"version":3,"file":"comment-controller.d.ts","sourceRoot":"","sources":["../../../src/controllers/comment-controller.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAGjD,eAAO,MAAM,iBAAiB;yBACC,OAAO,OAAO,QAAQ;uBAuDxB,OAAO,OAAO,QAAQ;wBA2CrB,OAAO,OAAO,QAAQ;0BA6DpB,OAAO,OAAO,QAAQ;yBAoBvB,OAAO,OAAO,QAAQ;CA2BpD,CAAC"}
