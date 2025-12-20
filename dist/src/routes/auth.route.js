@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import authController from '../controllers/auth-controller';
-import { validate } from '../middleware/validator';
-import { authenticate } from '../middleware/auth';
-import { authLimiter } from '../middleware/rate-limiter';
-import { registerSchema, loginSchema, refreshTokenSchema, forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema, resendOTPSchema, } from '../utils/validators';
+import authController from '../controllers/auth-controller.js';
+import { validate } from '../middleware/validator.js';
+import { authenticate } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rate-limiter.js';
+import { registerSchema, loginSchema, refreshTokenSchema, forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema, resendOTPSchema, } from '../utils/validators.js';
 const router = Router();
 // Public routes
 router.post('/register', authLimiter, validate(registerSchema), authController.register);

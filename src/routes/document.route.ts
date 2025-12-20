@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getDocuments, createDocument, deleteDocument, getDocumentById, updateDocument, shareDocument, removePermission, getSharedDocuments, getDeletedDocuments, restoreDocument, permanentlyDeleteDocument, updateAccess } from '../controllers/document.controller';
-import { authenticate } from '../middleware/auth';
+import { getDocuments, createDocument, deleteDocument, getDocumentById, updateDocument, shareDocument, removePermission, getSharedDocuments, getDeletedDocuments, restoreDocument, permanentlyDeleteDocument, updateAccess } from '../controllers/document.controller.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 

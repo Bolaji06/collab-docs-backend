@@ -1,4 +1,4 @@
-import { AppError } from '../utils/errors';
+import { AppError } from '../utils/errors.js';
 import { Prisma } from '@prisma/client';
 export const errorHandler = (err, req, res, next) => {
     console.error('Error:', err);

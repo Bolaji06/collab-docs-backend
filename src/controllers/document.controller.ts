@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { documentService } from '../services/document-service';
+import { documentService } from '../services/document-service.js';
 
 export const getDocuments = async (req: Request, res: Response, next: NextFunction) => {
     try {

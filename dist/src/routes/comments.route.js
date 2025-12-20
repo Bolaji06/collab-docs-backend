@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { commentController } from '../controllers/comment-controller';
-import { authenticate } from '../middleware/auth';
+import { commentController } from '../controllers/comment-controller.js';
+import { authenticate } from '../middleware/auth.js';
 const router = Router();
 // Routes attached to /api/comments mostly, or mix
 // Note: Document-scoped routes might be mounted differently in app.ts

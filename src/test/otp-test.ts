@@ -1,5 +1,5 @@
 
-import { prisma } from "../config/database";
+import { prisma } from "../config/database.js";
 const API_URL = 'http://localhost:3000/api/auth';
 
 async function runTest() {

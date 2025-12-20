@@ -1,4 +1,4 @@
-import { prisma } from '../config/database';
+import { prisma } from '../config/database.js';
 export const getNotifications = async (req, res) => {
     try {
         const userId = req.user?.id;

@@ -1,7 +1,7 @@
 
 import type { Request, Response } from 'express';
-import authService from '../services/auth-service';
-import { asyncHandler } from '../utils/helper';
+import authService from '../services/auth-service.js';
+import { asyncHandler } from '../utils/helper.js';
 
 class AuthController {
     // Register new user

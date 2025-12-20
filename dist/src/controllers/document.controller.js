@@ -1,4 +1,4 @@
-import { documentService } from '../services/document-service';
+import { documentService } from '../services/document-service.js';
 export const getDocuments = async (req, res, next) => {
     try {
         if (!req.user || !req.user.id) {

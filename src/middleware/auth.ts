@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { UnauthorizedError } from '../utils/errors';
-import type { JWTPayload } from '../types';
-import { asyncHandler } from '../utils/helper';
-import { prisma } from '../config/database';
+import { UnauthorizedError } from '../utils/errors.js';
+import type { JWTPayload } from '../types/index.js';
+import { asyncHandler } from '../utils/helper.js';
+import { prisma } from '../config/database.js';
 
 export const authenticate = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

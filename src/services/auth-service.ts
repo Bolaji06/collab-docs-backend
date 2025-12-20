@@ -1,17 +1,17 @@
 import bcrypt from 'bcryptjs';
 // @ts-ignore
 import jwt from 'jsonwebtoken';
-import { prisma } from '../config/database';
+import { prisma } from '../config/database.js';
 import {
     ConflictError,
     UnauthorizedError,
     NotFoundError,
     BadRequestError,
-} from '../utils/errors';
-import { exclude } from '../utils/helper';
-import type { AuthResponse, JWTPayload } from '../types';
+} from '../utils/errors.js';
+import { exclude } from '../utils/helper.js';
+import type { AuthResponse, JWTPayload } from '../types/index.js';
 import crypto from 'crypto';
-import { sendResetPasswordEmail, sendOTPEmail } from '../utils/emails';
+import { sendResetPasswordEmail, sendOTPEmail } from '../utils/emails.js';
 import { OAuth2Client } from 'google-auth-library';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

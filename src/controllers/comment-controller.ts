@@ -1,6 +1,6 @@
 
 import type { Request, Response } from 'express';
-import { prisma } from '../config/database';
+import { prisma } from '../config/database.js';
 
 export const commentController = {
     createComment: async (req: Request, res: Response) => {

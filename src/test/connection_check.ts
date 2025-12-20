@@ -1,5 +1,5 @@
 
-import { prisma } from '../config/database';
+import { prisma } from '../config/database.js';
 
 async function main() {
     console.log('Testing connection with App Config...');

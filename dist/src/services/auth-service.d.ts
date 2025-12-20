@@ -1,4 +1,4 @@
-import type { AuthResponse } from '../types';
+import type { AuthResponse } from '../types/index.js';
 declare class AuthService {
     private generateAccessToken;
     private generateRefreshToken;

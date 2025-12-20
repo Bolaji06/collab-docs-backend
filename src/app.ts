@@ -3,10 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
-import authRoutes from './routes/auth.route';
-import documentRoutes from './routes/document.route';
-import { errorHandler, notFound } from './middleware/error-handler';
-import { generalLimiter } from './middleware/rate-limiter';
+import authRoutes from './routes/auth.route.js';
+import documentRoutes from './routes/document.route.js';
+import { errorHandler, notFound } from './middleware/error-handler.js';
+import { generalLimiter } from './middleware/rate-limiter.js';
 
 const app = express();
 
@@ -41,8 +41,8 @@ app.get('/health', (req, res) => {
     });
 });
 
-import commentRoutes from './routes/comments.route';
-import notificationRoutes from './routes/notification.route';
+import commentRoutes from './routes/comments.route.js';
+import notificationRoutes from './routes/notification.route.js';
 
 // API routes
 app.use('/api/auth', authRoutes);
