@@ -7,15 +7,15 @@ const httpServer = createServer(app);
 // Initialize Socket.io
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: process.env.CLIENT_URL || 'https://collab-docs-alpha.vercel.app',
         credentials: true,
         methods: ['GET', 'POST']
     }
 });
 // Initialize Y-Socket.IO
 const ysocketio = new YSocketIO(io, {
-// Optional: Authenticate using existing middleware logic if needed
-// For now we trust the socket connection as it's protected by CORS
+    // Optional: Authenticate using existing middleware logic if needed
+    // For now we trust the socket connection as it's protected by CORS
 });
 // Initialize the provider
 ysocketio.initialize();
