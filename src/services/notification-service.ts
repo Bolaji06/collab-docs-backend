@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { getIO } from '../sockets/io.js';
 
 export class NotificationService {
     async createNotification(data: {
@@ -9,7 +10,7 @@ export class NotificationService {
         documentId?: string;
     }) {
         try {
-            return await prisma.notification.create({
+            const notification = await prisma.notification.create({
                 data: {
                     userId: data.userId,
                     type: data.type,
@@ -19,10 +20,18 @@ export class NotificationService {
                     isRead: false,
                 },
             });
+
+            // Emit real-time notification
+            try {
+                const io = getIO();
+                io.to(`user:${data.userId}`).emit('new-notification', notification);
+            } catch (ioError) {
+                console.warn('Socket.io not available for notification:', ioError);
+            }
+
+            return notification;
         } catch (error) {
             console.error('Failed to create notification:', error);
-            // We generally don't want to fail the main action if notification fails
-            // so we catch and log error here.
         }
     }
 }

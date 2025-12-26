@@ -5,42 +5,105 @@ export declare class DocumentService {
     createDocument(userId: string, data: {
         title?: string;
         content?: any;
+        folderId?: string;
+        workspaceId?: string;
     }): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
     /**
      * Get all documents accessible by a user (owned or shared), excluding deleted ones.
      * This is the default view.
      */
-    getDocumentsForUser(userId: string): Promise<({
+    getDocumentsForUser(userId: string, options?: {
+        search?: string;
+        folderId?: string;
+        tagId?: string;
+        workspaceId?: string;
+    }): Promise<({
+        tags: ({
+            tag: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                userId: string;
+                color: string | null;
+            };
+        } & {
+            documentId: string;
+            tagId: string;
+        })[];
+        folder: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            userId: string;
+            workspaceId: string | null;
+            color: string | null;
+        } | null;
         owner: {
+            id: string;
             email: string;
             username: string;
             avatar: string | null;
         };
+        permissions: ({
+            user: {
+                id: string;
+                email: string;
+                username: string;
+                avatar: string | null;
+            };
+        } & {
+            id: string;
+            documentId: string;
+            userId: string;
+            role: import("@prisma/client").$Enums.Role;
+            grantedAt: Date;
+        })[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     })[]>;
     /**
      * Get only documents shared WITH the user (excluding owned ones and deleted ones)
      */
     getSharedDocumentsForUser(userId: string): Promise<({
+        tags: ({
+            tag: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                userId: string;
+                color: string | null;
+            };
+        } & {
+            documentId: string;
+            tagId: string;
+        })[];
+        folder: {
+            id: string;
+            name: string;
+        } | null;
         owner: {
             email: string;
             username: string;
@@ -51,11 +114,13 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     })[]>;
     /**
      * Get soft-deleted documents owned by the user
@@ -71,17 +136,35 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     })[]>;
     /**
      * Get a specific document if the user has access.
      * Optionally allow fetching even if deleted (e.g. for restore preview), default false.
      */
     getDocumentById(documentId: string, userId: string, includeDeleted?: boolean): Promise<{
+        tags: ({
+            tag: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                userId: string;
+                color: string | null;
+            };
+        } & {
+            documentId: string;
+            tagId: string;
+        })[];
+        folder: {
+            id: string;
+            name: string;
+        } | null;
         owner: {
             email: string;
             username: string;
@@ -105,29 +188,60 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
     /**
      * Update a document if the user is the owner or has EDITOR role
      */
-    updateDocument(documentId: string, userId: string, data: {
+    updateDocument(userId: string, documentId: string, data: {
         title?: string;
-        content?: any;
+        content?: string;
+        folderId?: string | null;
     }): Promise<{
+        tags: ({
+            tag: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                userId: string;
+                color: string | null;
+            };
+        } & {
+            documentId: string;
+            tagId: string;
+        })[];
+        folder: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            userId: string;
+            workspaceId: string | null;
+            color: string | null;
+        } | null;
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
+    /**
+     * Extracts user IDs from Tiptap JSON content
+     */
+    private extractMentions;
     /**
      * Soft delete a document (Owner only)
      */
@@ -136,11 +250,13 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
     /**
      * Restore a soft-deleted document (Owner only)
@@ -150,11 +266,13 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
     /**
      * Permanently delete a document (Owner only)
@@ -164,11 +282,13 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
     /**
      * Share a document with another user by email
@@ -199,11 +319,13 @@ export declare class DocumentService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
+        folderId: string | null;
+        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
+        ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
-        ownerId: string;
     }>;
 }
 export declare const documentService: DocumentService;

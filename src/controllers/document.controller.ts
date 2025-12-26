@@ -1,15 +1,21 @@
 import type { Request, Response, NextFunction } from 'express';
 import { documentService } from '../services/document-service.js';
 
-export const getDocuments = async (req: Request, res: Response, next: NextFunction) => {
+export const getMyDocuments = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user || !req.user.id) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
         const userId = req.user.id;
-        const documents = await documentService.getDocumentsForUser(userId);
-        res.json(documents);
+        const { search, folderId, tagId, workspaceId } = req.query;
+        const documents = await documentService.getDocumentsForUser(userId, {
+            search: search as string,
+            folderId: folderId as string,
+            tagId: tagId as string,
+            workspaceId: workspaceId as string
+        });
+        res.status(200).json(documents);
     } catch (error) {
         next(error);
     }
@@ -22,8 +28,8 @@ export const createDocument = async (req: Request, res: Response, next: NextFunc
             return;
         }
         const userId = req.user.id;
-        const { title, content } = req.body;
-        const document = await documentService.createDocument(userId, { title, content });
+        const { title, content, folderId, workspaceId } = req.body;
+        const document = await documentService.createDocument(userId, { title, content, folderId, workspaceId });
         res.status(201).json(document);
     } catch (error) {
         next(error);
@@ -59,13 +65,13 @@ export const updateDocument = async (req: Request, res: Response, next: NextFunc
         }
         const userId = req.user.id;
         const { id } = req.params;
-        const { title, content } = req.body;
+        const { title, content, folderId } = req.body;
 
         if (!id) {
             return res.status(400).json({ message: 'Document ID is required' });
         }
 
-        const document = await documentService.updateDocument(id, userId, { title, content });
+        const document = await documentService.updateDocument(userId, id, { title, content, folderId });
         res.json(document);
     } catch (error: any) {
         if (error.message === 'Document not found') {

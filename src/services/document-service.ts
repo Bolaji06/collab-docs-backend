@@ -1,50 +1,113 @@
 import { prisma } from '../config/database.js';
+import { notificationService } from './notification-service.js';
+import { activityService } from './activity-service.js';
 
 export class DocumentService {
     /**
      * Create a new document for a user
      */
-    async createDocument(userId: string, data: { title?: string; content?: any }) {
-        return prisma.document.create({
+    async createDocument(userId: string, data: { title?: string; content?: any; folderId?: string; workspaceId?: string }) {
+        const document = await prisma.document.create({
             data: {
                 title: data.title || 'Untitled Document',
                 content: data.content || {},
                 ownerId: userId,
+                folderId: data.folderId || null,
+                workspaceId: data.workspaceId || null,
             },
         });
+
+        await activityService.logActivity({
+            userId,
+            type: 'DOC_CREATE',
+            documentId: document.id,
+            details: { title: document.title }
+        });
+
+        return document;
     }
 
     /**
      * Get all documents accessible by a user (owned or shared), excluding deleted ones.
      * This is the default view.
      */
-    async getDocumentsForUser(userId: string) {
+    async getDocumentsForUser(userId: string, options: { search?: string; folderId?: string; tagId?: string; workspaceId?: string } = {}) {
+        const where: any = {
+            deletedAt: null,
+        };
+
+        if (options.workspaceId) {
+            // Verify membership if workspaceId is provided
+            const membership = await prisma.workspaceMember.findUnique({
+                where: {
+                    workspaceId_userId: {
+                        workspaceId: options.workspaceId,
+                        userId
+                    }
+                }
+            });
+            if (!membership) return [];
+            where.workspaceId = options.workspaceId;
+        } else {
+            // Personal/Independent space
+            where.workspaceId = null;
+            where.OR = [
+                { ownerId: userId },
+                {
+                    permissions: {
+                        some: {
+                            userId: userId,
+                        }
+                    }
+                }
+            ];
+        }
+
+        if (options.folderId) where.folderId = options.folderId;
+        if (options.tagId) {
+            where.tags = {
+                some: {
+                    tagId: options.tagId
+                }
+            };
+        }
+        if (options.search) {
+            where.title = { contains: options.search, mode: 'insensitive' };
+        }
+
         return prisma.document.findMany({
-            where: {
-                deletedAt: null,
-                OR: [
-                    { ownerId: userId },
-                    {
-                        permissions: {
-                            some: {
-                                userId: userId,
-                            },
-                        },
-                    },
-                ],
-            },
+            where,
             include: {
                 owner: {
                     select: {
+                        id: true,
                         username: true,
                         email: true,
                         avatar: true,
-                    },
+                    }
                 },
+                permissions: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                email: true,
+                                avatar: true,
+                            }
+                        }
+                    }
+                },
+                folder: true,
+                tags: {
+                    include: {
+                        tag: true
+                    }
+                }
             },
             orderBy: {
                 updatedAt: 'desc',
-            },
+            }
         });
     }
 
@@ -70,6 +133,17 @@ export class DocumentService {
                         username: true,
                         email: true,
                         avatar: true,
+                    },
+                },
+                folder: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                tags: {
+                    include: {
+                        tag: true,
                     },
                 },
             },
@@ -124,6 +198,13 @@ export class DocumentService {
                             },
                         },
                     },
+                    {
+                        workspace: {
+                            members: {
+                                some: { userId }
+                            }
+                        }
+                    }
                 ],
             },
             include: {
@@ -145,6 +226,17 @@ export class DocumentService {
                         },
                     },
                 },
+                folder: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                tags: {
+                    include: {
+                        tag: true,
+                    },
+                },
             },
         });
 
@@ -158,12 +250,17 @@ export class DocumentService {
     /**
      * Update a document if the user is the owner or has EDITOR role
      */
-    async updateDocument(documentId: string, userId: string, data: { title?: string; content?: any }) {
-        // efficient check for permission without fetching the whole doc again if possible,
-        // but we need to check role.
+    async updateDocument(userId: string, documentId: string, data: { title?: string; content?: string; folderId?: string | null }) {
         const document = await prisma.document.findUnique({
             where: { id: documentId },
             include: {
+                workspace: {
+                    include: {
+                        members: {
+                            where: { userId }
+                        }
+                    }
+                },
                 permissions: {
                     where: {
                         userId: userId,
@@ -176,20 +273,106 @@ export class DocumentService {
             throw new Error('Document not found');
         }
 
-        const isOwner = document.ownerId === userId;
-        const isEditor = document.permissions.length > 0 && document.permissions[0]?.role === 'EDITOR';
+        const isWorkspaceMember = (document.workspace?.members?.length || 0) > 0;
+        const canEdit = document.ownerId === userId || document.permissions.length > 0 || isWorkspaceMember;
 
-        if (!isOwner && !isEditor) {
+        if (!canEdit) {
             throw new Error('Not authorized to edit this document');
         }
 
-        return prisma.document.update({
+        let workspaceId = document.workspaceId;
+        if (data.folderId !== undefined) {
+            if (data.folderId) {
+                const targetFolder = await prisma.folder.findUnique({ where: { id: data.folderId } });
+                if (targetFolder) {
+                    workspaceId = targetFolder.workspaceId;
+                }
+            }
+        }
+
+        const updatedDocument = await prisma.document.update({
             where: { id: documentId },
             data: {
                 ...(data.title && { title: data.title }),
                 ...(data.content && { content: data.content }),
+                ...(data.folderId !== undefined && { folderId: data.folderId }),
+                workspaceId
             },
+            include: {
+                folder: true,
+                tags: { include: { tag: true } }
+            }
         });
+
+        // Log activity
+        if (data.title && data.title !== document.title) {
+            await activityService.logActivity({
+                userId,
+                type: 'DOC_RENAME',
+                documentId,
+                details: { oldTitle: document.title, newTitle: data.title }
+            });
+        } else {
+            await activityService.logActivity({
+                userId,
+                type: 'DOC_UPDATE',
+                documentId
+            });
+        }
+
+        // Trigger mentions if content changed
+        if (data.content) {
+            try {
+                const oldMentions = document.content ? this.extractMentions(document.content) : [];
+                const newMentions = this.extractMentions(data.content);
+                const freshlyAddedMentions = newMentions.filter(m => !oldMentions.includes(m));
+
+                if (freshlyAddedMentions.length > 0) {
+                    const sender = await prisma.user.findUnique({
+                        where: { id: userId },
+                        select: { username: true }
+                    });
+
+                    for (const mentionUserId of freshlyAddedMentions) {
+                        if (mentionUserId === userId) continue; // Don't notify self
+
+                        await notificationService.createNotification({
+                            userId: mentionUserId,
+                            type: 'MENTION',
+                            title: 'You were mentioned',
+                            message: `${sender?.username || 'Someone'} mentioned you in "${document.title}"`,
+                            documentId: documentId,
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to trigger mention notifications:', error);
+            }
+        }
+
+        return updatedDocument;
+    }
+
+    /**
+     * Extracts user IDs from Tiptap JSON content
+     */
+    private extractMentions(content: any): string[] {
+        const mentions: Set<string> = new Set();
+
+        const traverse = (node: any) => {
+            if (!node) return;
+
+            if (node.type === 'mention' && node.attrs && node.attrs.id) {
+                mentions.add(node.attrs.id);
+            }
+
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(traverse);
+            }
+        };
+
+        traverse(content);
+        return Array.from(mentions);
     }
 
     /**
@@ -198,22 +381,55 @@ export class DocumentService {
     async softDeleteDocument(documentId: string, userId: string) {
         const document = await prisma.document.findUnique({
             where: { id: documentId },
+            include: {
+                workspace: true
+            }
         });
 
         if (!document) {
             throw new Error('Document not found');
         }
 
-        if (document.ownerId !== userId) {
+        if (!document) {
+            throw new Error('Document not found');
+        }
+
+        let canDelete = document.ownerId === userId;
+
+        if (!canDelete && document.workspaceId) {
+            const membership = await prisma.workspaceMember.findUnique({
+                where: {
+                    workspaceId_userId: {
+                        workspaceId: document.workspaceId,
+                        userId
+                    }
+                }
+            });
+            // Only admin or workspace owner can delete
+            if (membership && (membership.role === 'ADMIN' || document.workspace?.ownerId === userId)) {
+                canDelete = true;
+            }
+        }
+
+        if (!canDelete) {
             throw new Error('Not authorized to delete this document');
         }
 
-        return prisma.document.update({
+        const updated = await prisma.document.update({
             where: { id: documentId },
             data: {
                 deletedAt: new Date(),
             },
         });
+
+        await activityService.logActivity({
+            userId,
+            type: 'DOC_DELETE',
+            documentId,
+            details: { title: document.title }
+        });
+
+        return updated;
     }
 
     /**
@@ -316,18 +532,24 @@ export class DocumentService {
             },
         });
 
+        // Log activity
+        await activityService.logActivity({
+            userId: ownerId,
+            type: 'DOC_SHARE',
+            documentId,
+            details: { email, role, title: document.title }
+        });
+
         // Send notification
         try {
             const owner = await prisma.user.findUnique({ where: { id: ownerId } });
-            if (permission.userId !== ownerId) { // Should always be true due to earlier check
-                await prisma.notification.create({
-                    data: {
-                        userId: userToShareWith.id,
-                        type: 'SHARE',
-                        title: 'Document Shared',
-                        message: `${owner?.username || 'Someone'} shared "${document.title}" with you`,
-                        documentId: document.id,
-                    }
+            if (permission.userId !== ownerId) {
+                await notificationService.createNotification({
+                    userId: userToShareWith.id,
+                    type: 'SHARE',
+                    title: 'Document Shared',
+                    message: `${owner?.username || 'Someone'} shared "${document.title}" with you`,
+                    documentId: document.id,
                 });
             }
         } catch (e) {

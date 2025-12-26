@@ -22,6 +22,7 @@ declare class AuthService {
         avatar: string | null;
         createdAt: Date;
         updatedAt: Date;
+        isPremium: boolean;
     }>;
     updateProfile(userId: string, data: {
         username?: string;
@@ -33,6 +34,7 @@ declare class AuthService {
         avatar: string | null;
         createdAt: Date;
         updatedAt: Date;
+        isPremium: boolean;
     }>;
     changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
         message: string;

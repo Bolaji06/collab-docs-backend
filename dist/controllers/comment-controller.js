@@ -1,4 +1,6 @@
 import { prisma } from '../config/database.js';
+import { notificationService } from '../services/notification-service.js';
+import { activityService } from '../services/activity-service.js';
 export const commentController = {
     createComment: async (req, res) => {
         try {
@@ -27,22 +29,29 @@ export const commentController = {
                             email: true,
                             avatar: true
                         }
-                    }
+                    },
+                    replies: true,
+                    reactions: true
                 }
             });
             // Notify document owner
             const document = await prisma.document.findUnique({ where: { id: documentId } });
             if (document && document.ownerId !== userId) {
-                await prisma.notification.create({
-                    data: {
-                        userId: document.ownerId,
-                        type: 'COMMENT',
-                        title: 'New Comment',
-                        message: `${req.user?.username || 'Someone'} commented on "${document.title}"`,
-                        documentId: document.id,
-                    }
+                await notificationService.createNotification({
+                    userId: document.ownerId,
+                    type: 'COMMENT',
+                    title: 'New Comment',
+                    message: `${req.user?.username || 'Someone'} commented on "${document.title}"`,
+                    documentId: document.id,
                 });
             }
+            // Log activity
+            await activityService.logActivity({
+                userId,
+                type: 'COMMENT',
+                documentId,
+                details: { content: content.substring(0, 50) + (content.length > 50 ? '...' : '') }
+            });
             res.status(201).json({ success: true, data: comment });
         }
         catch (error) {
@@ -65,6 +74,22 @@ export const commentController = {
                             username: true,
                             email: true,
                             avatar: true
+                        }
+                    },
+                    resolver: {
+                        select: {
+                            id: true,
+                            username: true
+                        }
+                    },
+                    reactions: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    username: true
+                                }
+                            }
                         }
                     },
                     replies: {
@@ -127,16 +152,21 @@ export const commentController = {
             if (comment.userId !== userId) {
                 // Get document for title context (optional, or just generic)
                 const document = await prisma.document.findUnique({ where: { id: comment.documentId } });
-                await prisma.notification.create({
-                    data: {
-                        userId: comment.userId,
-                        type: 'COMMENT',
-                        title: 'New Reply',
-                        message: `${req.user?.username || 'Someone'} replied to your comment on "${document?.title || 'a document'}"`,
-                        documentId: comment.documentId,
-                    }
+                await notificationService.createNotification({
+                    userId: comment.userId,
+                    type: 'COMMENT',
+                    title: 'New Reply',
+                    message: `${req.user?.username || 'Someone'} replied to your comment on "${document?.title || 'a document'}"`,
+                    documentId: comment.documentId,
                 });
             }
+            // Log activity
+            await activityService.logActivity({
+                userId,
+                type: 'COMMENT_REPLY',
+                documentId: comment.documentId,
+                details: { content: content.substring(0, 50) + (content.length > 50 ? '...' : '') }
+            });
             res.status(201).json({ success: true, data: reply });
         }
         catch (error) {
@@ -147,12 +177,26 @@ export const commentController = {
     resolveComment: async (req, res) => {
         try {
             const { id } = req.params;
+            const { outcome } = req.body;
+            const userId = req.user?.id;
             if (!id) {
                 return res.status(400).json({ message: 'Comment ID is required' });
             }
             const comment = await prisma.comment.update({
                 where: { id },
-                data: { resolved: true }
+                data: {
+                    resolved: true,
+                    ...(userId && { resolver: { connect: { id: userId } } }),
+                    outcome: outcome || null
+                },
+                include: {
+                    resolver: {
+                        select: {
+                            id: true,
+                            username: true
+                        }
+                    }
+                }
             });
             res.json({ success: true, data: comment });
         }
@@ -183,6 +227,73 @@ export const commentController = {
         catch (error) {
             console.error('Delete comment error:', error);
             res.status(500).json({ success: false, message: 'Failed to delete comment' });
+        }
+    },
+    unresolveComment: async (req, res) => {
+        try {
+            const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({ message: 'Comment ID is required' });
+            }
+            const comment = await prisma.comment.update({
+                where: { id },
+                data: {
+                    resolved: false,
+                    resolvedBy: null
+                }
+            });
+            res.json({ success: true, data: comment });
+        }
+        catch (error) {
+            console.error('Unresolve comment error:', error);
+            res.status(500).json({ success: false, message: 'Failed to unresolve comment' });
+        }
+    },
+    toggleReaction: async (req, res) => {
+        try {
+            const { id } = req.params; // commentId
+            const { emoji } = req.body;
+            const userId = req.user?.id;
+            if (!id || !emoji || !userId) {
+                return res.status(400).json({ message: 'Missing parameters' });
+            }
+            const existingReaction = await prisma.commentReaction.findUnique({
+                where: {
+                    commentId_userId_emoji: {
+                        commentId: id,
+                        userId,
+                        emoji
+                    }
+                }
+            });
+            if (existingReaction) {
+                await prisma.commentReaction.delete({
+                    where: { id: existingReaction.id }
+                });
+                return res.json({ success: true, action: 'removed' });
+            }
+            else {
+                const reaction = await prisma.commentReaction.create({
+                    data: {
+                        commentId: id,
+                        userId,
+                        emoji
+                    },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true
+                            }
+                        }
+                    }
+                });
+                return res.json({ success: true, action: 'added', data: reaction });
+            }
+        }
+        catch (error) {
+            console.error('Toggle reaction error:', error);
+            res.status(500).json({ success: false, message: 'Failed to toggle reaction' });
         }
     }
 };

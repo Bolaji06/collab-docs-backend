@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getDocuments, createDocument, deleteDocument, getDocumentById, updateDocument, shareDocument, removePermission, getSharedDocuments, getDeletedDocuments, restoreDocument, permanentlyDeleteDocument, updateAccess } from '../controllers/document.controller.js';
+import { getMyDocuments, createDocument, deleteDocument, getDocumentById, updateDocument, shareDocument, removePermission, getSharedDocuments, getDeletedDocuments, restoreDocument, permanentlyDeleteDocument, updateAccess } from '../controllers/document.controller.js';
 import { authenticate } from '../middleware/auth.js';
 const router = Router();
 router.use(authenticate);
 router.get('/shared', getSharedDocuments);
 router.get('/trash', getDeletedDocuments);
-router.get('/', getDocuments);
+router.get('/', getMyDocuments);
 router.post('/', createDocument);
 router.get('/:id', getDocumentById);
 router.put('/:id', updateDocument);

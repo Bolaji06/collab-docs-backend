@@ -1,0 +1,54 @@
+import type { Request, Response, NextFunction } from 'express';
+import { aiService } from '../services/ai-service.js';
+
+export const summarize = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+        const summary = await aiService.summarizeText(text);
+        res.status(200).json({ result: summary });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const improveWriting = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+        const improved = await aiService.improveWriting(text);
+        res.status(200).json({ result: improved });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const extractMeetingNotes = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+        const notes = await aiService.extractMeetingNotes(text);
+        res.status(200).json({ result: notes });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const suggestTags = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+        const tags = await aiService.suggestTags(text);
+        res.status(200).json({ result: tags });
+    } catch (error) {
+        next(error);
+    }
+};

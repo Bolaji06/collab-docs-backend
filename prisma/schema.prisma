@@ -12,6 +12,37 @@ datasource db {
   provider = "postgresql"
 }
 
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  isPremium Boolean  @default(false) @map("is_premium")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner      User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members    WorkspaceMember[]
+  documents  Document[]
+  folders    Folder[]
+  activities Activity[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String   @map("user_id")
+  role        String   @default("MEMBER") // ADMIN, MEMBER
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_members")
+}
+
 model User {
   id               String    @id @default(uuid())
   email            String    @unique
@@ -26,13 +57,21 @@ model User {
   resetTokenExpiry DateTime? @map("reset_token_expiry")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
+  isPremium        Boolean   @default(false) @map("is_premium")
 
-  ownedDocuments      Document[]           @relation("DocumentOwner")
-  documentPermissions DocumentPermission[]
-  documentVersions    DocumentVersion[]
-  comments            Comment[]
-  commentReplies      CommentReply[]
-  notifications       Notification[]
+  ownedDocuments       Document[]           @relation("DocumentOwner")
+  documentPermissions  DocumentPermission[]
+  documentVersions     DocumentVersion[]
+  comments             Comment[]
+  commentReplies       CommentReply[]
+  notifications        Notification[]
+  folders              Folder[]
+  tags                 Tag[]
+  ownedWorkspaces      Workspace[]          @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
+  activities           Activity[]
+  commentReactions     CommentReaction[]
+  resolvedComments     Comment[]            @relation("CommentResolver")
 
   @@map("users")
 }
@@ -48,12 +87,19 @@ model Document {
 
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
+  folderId  String?   @map("folder_id")
 
-  owner       User                 @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User       @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  workspaceId String?    @map("workspace_id")
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
   permissions DocumentPermission[]
   versions    DocumentVersion[]
   deltas      DocumentDelta[]
   comments    Comment[]
+  folder      Folder?              @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags        DocumentTag[]
+  activities  Activity[]
 
   @@index([ownerId])
   @@index([createdAt])
@@ -124,9 +170,13 @@ model Comment {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  document Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  replies  CommentReply[]
+  document   Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies    CommentReply[]
+  resolvedBy String?           @map("resolved_by")
+  resolver   User?             @relation("CommentResolver", fields: [resolvedBy], references: [id])
+  reactions  CommentReaction[]
+  outcome    String?           @map("outcome") // "DECIDED", "DEFERRED", "REJECTED"
 
   @@index([documentId])
   @@index([userId])
@@ -146,6 +196,20 @@ model CommentReply {
 
   @@index([commentId])
   @@map("comment_replies")
+}
+
+model CommentReaction {
+  id        String   @id @default(uuid())
+  commentId String   @map("comment_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
+  @@map("comment_reactions")
 }
 
 model Notification {
@@ -169,4 +233,64 @@ enum NotificationType {
   SHARE
   SYSTEM
   MENTION
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String?    @map("workspace_id")
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  documents   Document[]
+  activities  Activity[]
+
+  @@map("folders")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String   @map("user_id")
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents DocumentTag[]
+
+  @@unique([name, userId])
+  @@map("tags")
+}
+
+model DocumentTag {
+  documentId String @map("document_id")
+  tagId      String @map("tag_id")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, tagId])
+  @@map("document_tags")
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  type        String // e.g., "COMMENT", "SHARE", "DOC_CREATE", "FOLD_CREATE", "DOC_RENAME"
+  userId      String   @map("user_id")
+  documentId  String?  @map("document_id")
+  folderId    String?  @map("folder_id")
+  workspaceId String?  @map("workspace_id")
+  details     Json? // Extra metadata: { "title": "...", "folderName": "..." }
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document  Document?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  folder    Folder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@map("activities")
 }

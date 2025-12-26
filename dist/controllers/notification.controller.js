@@ -64,4 +64,31 @@ export const markAllAsRead = async (req, res) => {
         res.status(500).json({ message: 'Failed to update notifications' });
     }
 };
+export const sendNudge = async (req, res) => {
+    try {
+        const senderId = req.user?.id;
+        const { userIds, documentId, documentTitle } = req.body;
+        if (!senderId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        if (!userIds || !Array.isArray(userIds)) {
+            return res.status(400).json({ message: 'Invalid userIds' });
+        }
+        const sender = await prisma.user.findUnique({ where: { id: senderId } });
+        const notifications = await Promise.all(userIds.map(userId => prisma.notification.create({
+            data: {
+                userId,
+                type: 'SYSTEM',
+                title: 'Alignment Nudge',
+                message: `${sender?.username} is waiting for your alignment on "${documentTitle}".`,
+                documentId
+            }
+        })));
+        res.json({ message: `Sent nudges to ${notifications.length} users` });
+    }
+    catch (error) {
+        console.error('Send nudge error:', error);
+        res.status(500).json({ message: 'Failed to send nudges' });
+    }
+};
 //# sourceMappingURL=notification.controller.js.map

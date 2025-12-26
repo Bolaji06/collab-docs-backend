@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-export declare const getDocuments: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getMyDocuments: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const createDocument: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const getDocumentById: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const updateDocument: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;

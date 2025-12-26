@@ -12,8 +12,8 @@ export declare class NotificationService {
         type: import("@prisma/client").$Enums.NotificationType;
         title: string;
         documentId: string | null;
-        userId: string;
         isRead: boolean;
+        userId: string;
     } | undefined>;
 }
 export declare const notificationService: NotificationService;
