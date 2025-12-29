@@ -19,5 +19,6 @@ router.get('/me', authenticate, authController.getCurrentUser);
 router.put('/profile', authenticate, authController.updateProfile);
 router.put('/change-password', authenticate, authController.changePassword);
 router.post('/logout', authenticate, authController.logout);
+router.post('/onboarding/complete', authenticate, authController.completeOnboarding);
 export default router;
 //# sourceMappingURL=auth.route.js.map

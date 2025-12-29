@@ -84,6 +84,30 @@ Text to process:\n\n${text}`;
             throw new Error("Failed to suggest tags");
         }
     }
+    /**
+     * Deep analysis of document alignment, conflicts, and decisions.
+     */
+    async analyzeAlignment(documentContent, intent) {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY is not configured");
+        }
+        const prompt = `Act as a Collaboration Strategist. Analyze the following document content (Document Intent: ${intent}) and provide a synthesis of:
+1. Current Alignment: How well is the team aligned based on the structure?
+2. Critical Decisions: What are the top 3 decisions made?
+3. Unresolved Conflicts/Risks: What is blocking progress or requires immediate attention?
+4. Momentum Score (0-100): Based on the presence of tasks and acknowledgments.
+
+Document Content:\n\n${documentContent}`;
+        try {
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        }
+        catch (error) {
+            console.error("AI Alignment Analysis failed:", error);
+            throw new Error("Failed to analyze alignment");
+        }
+    }
 }
 export const aiService = new AIService();
 //# sourceMappingURL=ai-service.js.map

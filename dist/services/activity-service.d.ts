@@ -22,9 +22,9 @@ export declare class ActivityService {
         type: string;
         documentId: string | null;
         userId: string;
-        details: import("@prisma/client/runtime/client").JsonValue | null;
         folderId: string | null;
         workspaceId: string | null;
+        details: import("@prisma/client/runtime/client").JsonValue | null;
     } | undefined>;
     /**
      * Get latest activities relevant to a user
@@ -46,9 +46,9 @@ export declare class ActivityService {
         type: string;
         documentId: string | null;
         userId: string;
-        details: import("@prisma/client/runtime/client").JsonValue | null;
         folderId: string | null;
         workspaceId: string | null;
+        details: import("@prisma/client/runtime/client").JsonValue | null;
     })[]>;
 }
 export declare const activityService: ActivityService;

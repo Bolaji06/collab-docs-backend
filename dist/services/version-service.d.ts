@@ -32,13 +32,14 @@ export declare class VersionService {
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        folderId: string | null;
-        workspaceId: string | null;
         content: import("@prisma/client/runtime/client").JsonValue | null;
         ownerId: string;
         isPublic: boolean;
         publicRole: import("@prisma/client").$Enums.Role | null;
         deletedAt: Date | null;
+        folderId: string | null;
+        intent: string;
+        workspaceId: string | null;
     }>;
 }
 export declare const versionService: VersionService;

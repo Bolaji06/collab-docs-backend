@@ -65,13 +65,13 @@ export const updateDocument = async (req: Request, res: Response, next: NextFunc
         }
         const userId = req.user.id;
         const { id } = req.params;
-        const { title, content, folderId } = req.body;
+        const { title, content, folderId, intent } = req.body;
 
         if (!id) {
             return res.status(400).json({ message: 'Document ID is required' });
         }
 
-        const document = await documentService.updateDocument(userId, id, { title, content, folderId });
+        const document = await documentService.updateDocument(userId, id, { title, content, folderId, intent });
         res.json(document);
     } catch (error: any) {
         if (error.message === 'Document not found') {

@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { getIO } from '../sockets/io.js';
+import { sendMentionEmail, sendShareEmail } from '../utils/emails.js';
 
 export class NotificationService {
     async createNotification(data: {
@@ -27,6 +28,23 @@ export class NotificationService {
                 io.to(`user:${data.userId}`).emit('new-notification', notification);
             } catch (ioError) {
                 console.warn('Socket.io not available for notification:', ioError);
+            }
+
+            // Send email for critical notifications
+            try {
+                const user = await prisma.user.findUnique({ where: { id: data.userId } });
+                if (user?.email) {
+                    if (data.type === 'MENTION' && data.documentId) {
+                        const document = await prisma.document.findUnique({ where: { id: data.documentId } });
+                        await sendMentionEmail(user.email, 'A teammate', document?.title || 'a document', data.documentId || '');
+                    }
+                    if (data.type === 'SHARE' && data.documentId) {
+                        const document = await prisma.document.findUnique({ where: { id: data.documentId } });
+                        await sendShareEmail(user.email, 'A teammate', document?.title || 'a document', data.documentId || '', 'collaborator');
+                    }
+                }
+            } catch (emailError) {
+                console.error('Failed to send notification email:', emailError);
             }
 
             return notification;

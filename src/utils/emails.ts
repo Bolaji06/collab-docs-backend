@@ -1,8 +1,7 @@
 
 import { Resend } from 'resend';
 
-//const resend = new Resend(process.env.RESEND_API_KEY);
-const resend = new Resend('re_17UexMfu_7RPAy3zPsnfoiNdc7XN3W9hp');
+const resend = new Resend(process.env.RESEND_API_KEY || 're_17UexMfu_7RPAy3zPsnfoiNdc7XN3W9hp');
 
 export const sendResetPasswordEmail = async (to: string, resetLink: string) => {
   await resend.emails.send({
@@ -27,7 +26,7 @@ export const sendResetPasswordEmail = async (to: string, resetLink: string) => {
 };
 
 export const sendOTPEmail = async (to: string, otp: string) => {
-  const sendEmail = await resend.emails.send({
+  await resend.emails.send({
     from: "CollabDocs <onboarding@resend.dev>",
     to,
     subject: 'Verify your email code',
@@ -45,5 +44,64 @@ export const sendOTPEmail = async (to: string, otp: string) => {
       </div>
     `,
   });
-  console.log(sendEmail)
+};
+
+export const sendNudgeEmail = async (to: string, senderName: string, documentTitle: string, documentId: string) => {
+  const docLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/doc/${documentId}`;
+  await resend.emails.send({
+    from: "CollabDocs Nudge <onboarding@resend.dev>",
+    to,
+    subject: `Nudge: ${senderName} is waiting for you in "${documentTitle}"`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #8b5cf6;">Alignment Nudge</h2>
+        <p><strong>${senderName}</strong> is waiting for your alignment on decisions or tasks in <strong>"${documentTitle}"</strong>.</p>
+        <p>Your input is critical to moving the team forward. Jump back in to resolve the pending items:</p>
+        <a href="${docLink}" style="display: inline-block; padding: 12px 24px; background: #8b5cf6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Open Document
+        </a>
+        <p style="margin-top: 20px; color: #666; font-size: 14px;">
+          You are receiving this because a teammate sent you an explicit nudged for alignment.
+        </p>
+      </div>
+    `,
+  });
+};
+
+export const sendMentionEmail = async (to: string, senderName: string, documentTitle: string, documentId: string) => {
+  const docLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/doc/${documentId}`;
+  await resend.emails.send({
+    from: "CollabDocs <onboarding@resend.dev>",
+    to,
+    subject: `${senderName} mentioned you in "${documentTitle}"`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #6366f1;">New Mention</h2>
+        <p><strong>${senderName}</strong> mentioned you in a document: <strong>"${documentTitle}"</strong>.</p>
+        <p>Click below to see the context and reply:</p>
+        <a href="${docLink}" style="display: inline-block; padding: 12px 24px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          View Mention
+        </a>
+      </div>
+    `,
+  });
+};
+
+export const sendShareEmail = async (to: string, senderName: string, documentTitle: string, documentId: string, role: string) => {
+  const docLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/doc/${documentId}`;
+  await resend.emails.send({
+    from: "CollabDocs <onboarding@resend.dev>",
+    to,
+    subject: `${senderName} shared "${documentTitle}" with you`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #10b981;">Shared with you</h2>
+        <p><strong>${senderName}</strong> invited you to collaborate on <strong>"${documentTitle}"</strong> as a <strong>${role}</strong>.</p>
+        <p>Click below to access the document:</p>
+        <a href="${docLink}" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Access Document
+        </a>
+      </div>
+    `,
+  });
 };

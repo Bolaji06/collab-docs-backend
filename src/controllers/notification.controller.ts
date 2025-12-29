@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
+import { sendNudgeEmail } from '../utils/emails.js';
 
 export const getNotifications = async (req: Request, res: Response) => {
     try {
@@ -107,6 +108,21 @@ export const sendNudge = async (req: Request, res: Response) => {
                 })
             )
         );
+
+        // Send emails
+        try {
+            const nudgeTargetUsers = await prisma.user.findMany({
+                where: { id: { in: userIds } }
+            });
+
+            for (const targetUser of nudgeTargetUsers) {
+                if (targetUser.email) {
+                    await sendNudgeEmail(targetUser.email, sender?.username || 'A teammate', documentTitle, documentId);
+                }
+            }
+        } catch (emailError) {
+            console.error('Failed to send nudge emails:', emailError);
+        }
 
         res.json({ message: `Sent nudges to ${notifications.length} users` });
     } catch (error) {

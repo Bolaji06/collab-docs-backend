@@ -23,6 +23,7 @@ declare class AuthService {
         createdAt: Date;
         updatedAt: Date;
         isPremium: boolean;
+        onboardingCompleted: boolean;
     }>;
     updateProfile(userId: string, data: {
         username?: string;
@@ -35,6 +36,7 @@ declare class AuthService {
         createdAt: Date;
         updatedAt: Date;
         isPremium: boolean;
+        onboardingCompleted: boolean;
     }>;
     changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
         message: string;

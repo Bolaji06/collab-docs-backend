@@ -1,6 +1,7 @@
 
 import type { Request, Response } from 'express';
 import authService from '../services/auth-service.js';
+import { prisma } from '../config/database.js';
 import { asyncHandler } from '../utils/helper.js';
 
 class AuthController {
@@ -47,6 +48,12 @@ class AuthController {
 
         const result = await authService.login(email, password);
 
+        // Update last active
+        await prisma.user.update({
+            where: { id: result.user.id },
+            data: { lastActiveAt: new Date() }
+        });
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -70,6 +77,12 @@ class AuthController {
     // Get current user
     getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
         const user = await authService.getCurrentUser(req.user!.id);
+
+        // Update last active
+        await prisma.user.update({
+            where: { id: req.user!.id },
+            data: { lastActiveAt: new Date() }
+        });
 
         res.status(200).json({
             success: true,
@@ -153,6 +166,20 @@ class AuthController {
             success: true,
             message: 'Login successful',
             data: result,
+        });
+    });
+
+    // Complete onboarding
+    completeOnboarding = asyncHandler(async (req: Request, res: Response) => {
+        const user = await prisma.user.update({
+            where: { id: req.user!.id },
+            data: { onboardingCompleted: true }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Onboarding marked as completed',
+            data: user,
         });
     });
 }

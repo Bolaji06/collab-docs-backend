@@ -59,6 +59,8 @@ import activityRoutes from './routes/activity.route.js';
 import versionRoutes from './routes/version.route.js';
 import workspaceRoutes from './routes/workspace.route.js';
 import aiRoutes from './routes/ai.route.js';
+import templateRoutes from './routes/template.route.js';
+import analyticsRoutes from './routes/analytics.route.js';
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
@@ -70,6 +72,8 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/versions', versionRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/analytics', analyticsRoutes);
 // 404 handler
 app.use(notFound);
 // Error handler (must be last)

@@ -51,4 +51,17 @@ export const suggestTags = async (req, res, next) => {
         next(error);
     }
 };
+export const analyzeAlignment = async (req, res, next) => {
+    try {
+        const { text, intent } = req.body;
+        if (!text) {
+            return res.status(400).json({ message: 'Document content is required' });
+        }
+        const analysis = await aiService.analyzeAlignment(text, intent || 'brainstorming');
+        res.status(200).json({ result: analysis });
+    }
+    catch (error) {
+        next(error);
+    }
+};
 //# sourceMappingURL=ai.controller.js.map

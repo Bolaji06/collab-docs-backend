@@ -11,6 +11,7 @@ declare class AuthController {
     resetPassword: (req: any, res: any, next: any) => void;
     logout: (req: any, res: any, next: any) => void;
     googleLogin: (req: any, res: any, next: any) => void;
+    completeOnboarding: (req: any, res: any, next: any) => void;
 }
 declare const _default: AuthController;
 export default _default;

@@ -14,6 +14,7 @@ export class DocumentService {
                 ownerId: userId,
                 folderId: data.folderId || null,
                 workspaceId: data.workspaceId || null,
+                intent: (data as any).intent || 'brainstorm'
             },
         });
 
@@ -250,7 +251,7 @@ export class DocumentService {
     /**
      * Update a document if the user is the owner or has EDITOR role
      */
-    async updateDocument(userId: string, documentId: string, data: { title?: string; content?: string; folderId?: string | null }) {
+    async updateDocument(userId: string, documentId: string, data: { title?: string; content?: string; folderId?: string | null; intent?: string }) {
         const document = await prisma.document.findUnique({
             where: { id: documentId },
             include: {
@@ -296,6 +297,7 @@ export class DocumentService {
                 ...(data.title && { title: data.title }),
                 ...(data.content && { content: data.content }),
                 ...(data.folderId !== undefined && { folderId: data.folderId }),
+                ...(data.intent && { intent: data.intent }),
                 workspaceId
             },
             include: {

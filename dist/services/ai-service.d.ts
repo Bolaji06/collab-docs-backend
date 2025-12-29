@@ -16,6 +16,10 @@ export declare class AIService {
      * Suggest relevant tags based on content
      */
     suggestTags(text: string): Promise<string[]>;
+    /**
+     * Deep analysis of document alignment, conflicts, and decisions.
+     */
+    analyzeAlignment(documentContent: string, intent: string): Promise<string>;
 }
 export declare const aiService: AIService;
 //# sourceMappingURL=ai-service.d.ts.map

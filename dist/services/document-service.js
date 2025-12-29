@@ -13,6 +13,7 @@ export class DocumentService {
                 ownerId: userId,
                 folderId: data.folderId || null,
                 workspaceId: data.workspaceId || null,
+                intent: data.intent || 'brainstorm'
             },
         });
         await activityService.logActivity({
@@ -281,6 +282,7 @@ export class DocumentService {
                 ...(data.title && { title: data.title }),
                 ...(data.content && { content: data.content }),
                 ...(data.folderId !== undefined && { folderId: data.folderId }),
+                ...(data.intent && { intent: data.intent }),
                 workspaceId
             },
             include: {
