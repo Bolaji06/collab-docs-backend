@@ -65,3 +65,16 @@ export const analyzeAlignment = async (req: Request, res: Response, next: NextFu
         next(error);
     }
 };
+
+export const editContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { text, instruction } = req.body;
+        if (!text || !instruction) {
+            return res.status(400).json({ message: 'Text and instruction are required' });
+        }
+        const edited = await aiService.editWithInstruction(text, instruction);
+        res.status(200).json({ result: edited });
+    } catch (error) {
+        next(error);
+    }
+};

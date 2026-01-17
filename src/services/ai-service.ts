@@ -125,6 +125,30 @@ Document Content:\n\n${documentContent}`;
             throw new Error("Failed to analyze alignment");
         }
     }
+
+    /**
+     * Edit text based on user instruction
+     */
+    async editWithInstruction(text: string, instruction: string) {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY is not configured");
+        }
+
+        const prompt = `Act as a professional editor. Please follow this instruction: "${instruction}" to rewrite the following text. 
+Maintain the original meaning unless asked to change it. Return ONLY the rewritten text, no explanations.
+
+Text to rewrite:
+${text}`;
+
+        try {
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        } catch (error) {
+            console.error("AI Edit with Instruction failed:", error);
+            throw new Error("Failed to edit text with instruction");
+        }
+    }
 }
 
 export const aiService = new AIService();
